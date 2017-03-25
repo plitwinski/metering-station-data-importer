@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.26228.9
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Metering.Station.Data.Importer.Console", "Metering.Station.Data.Importer.Console\Metering.Station.Data.Importer.Console.fsproj", "{709285B1-2805-4E51-993A-3057EEE5AAF4}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Metering.Station.Data.Importer.Core", "..\Metering.Station.Data.Importer.Core\Metering.Station.Data.Importer.Core.fsproj", "{BC14BED0-F440-4797-B99A-D8430D956FDA}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Metering.Station.Data.Importer.Core", "Metering.Station.Data.Importer.Core\Metering.Station.Data.Importer.Core.fsproj", "{BC14BED0-F440-4797-B99A-D8430D956FDA}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Metering.Station.Data.Importer.Amazon", "Metering.Station.Data.Importer.Amazon\Metering.Station.Data.Importer.Amazon.fsproj", "{ED88DD33-50EF-4827-9167-E94D8A50408F}"
 EndProject

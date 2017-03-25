@@ -1,37 +1,39 @@
 ﻿module Metering.Station.Data.Importer.Core.ActorSystem
 
+open System.Threading.Tasks
+open Amazon.DynamoDBv2.DocumentModel
+open System.Collections.Generic
+open Amazon.DynamoDBv2.Model
+open System.Linq
 open Akka.FSharp
 open Akka.Actor
 
 open Metering.Station.Data.Importer.Amazon.AirQualityData
-open System.Threading.Tasks
 
 
-let system = System.create "system" (Configuration.defaultConfig())  
-type DownloadResult = { ActorId: int; Result: obj }
-
-
+type DynamoDocument = Dictionary<string,AttributeValue>
+type DownloadResult = { ActorId: int; Result: seq<DynamoDocument> }
 type ImporterMsg =  
     | Start
     | Stop
     | WorkerFinished of int
     | DownloadFinished of DownloadResult
-
 type WorkerMsg =
-    | ReadyToProcess of obj
+    | ReadyToProcess of DynamoDocument
+
+
+let system = System.create "system" (Configuration.defaultConfig())  
 
 let worker (mailbox: Actor<'a>) id = 
     let rec imp () =
        actor {
          let! msg = mailbox.Receive()
          match msg with 
-               | ReadyToProcess item -> printfn "Worker %s" mailbox.Context.Self.Path.Name
+               | ReadyToProcess item -> printfn "Worker %s %s" mailbox.Context.Self.Path.Name (item.Item("serverTime").N)
                                         mailbox.Context.Parent <! WorkerFinished id
          return! imp ()
        }
     imp()
-
-
 
 let dataActor (mailbox: Actor<'a>) = 
     let spawnChild name id = spawn mailbox name <| fun childMailbox -> worker childMailbox id
@@ -44,24 +46,28 @@ let dataActor (mailbox: Actor<'a>) =
         else 
           actorRef
      
-    let awaitDownload (dataImporterActor: Actor<'a>) actorId  = fun (task : Task<seq<'b>>)->
+    let awaitDownload (dataImporterActor: Actor<'a>) actorId  = fun (task : Task<List<DynamoDocument>>) ->
         if task.IsFaulted then raise task.Exception
         if task.IsCompleted then
             dataImporterActor.Self <! DownloadFinished { Result = task.Result; ActorId = actorId }
 
-    let lastTimestamp = 1
+    let mutable lastTimestamp = "1490440921"
     let initialItemsToProcess = 4
+
+    let updateLastTimestamp = fun (documents: seq<DynamoDocument>) ->
+        let maxValue = documents |> Seq.map(fun p -> p.Item("serverTime").N) 
+                                 |> Seq.sortBy(fun p -> p)
+                                 |> Seq.last
+        lastTimestamp <- maxValue
+        documents
     
     fun msg -> match msg with
                   | Start _ -> (getMessagesAsync lastTimestamp initialItemsToProcess).ContinueWith(awaitDownload mailbox -1) |> ignore
                   | WorkerFinished actorId -> (getMessagesAsync lastTimestamp initialItemsToProcess).ContinueWith(awaitDownload mailbox actorId) |> ignore
                   | DownloadFinished result -> match result.ActorId with
-                                                      | -1 -> match result.Result with
-                                                                    | :? seq<obj> -> (result.Result :?> seq<obj>) |> Seq.iteri(fun i x -> (getActor i) <! ReadyToProcess x) |> ignore
-                                                                    | _ -> printfn "No mathing results"
-                                                      | actorId -> match result.Result with
-                                                                    | :? seq<obj> -> (getActor result.ActorId) <! ReadyToProcess (Seq.head (result.Result :?> seq<obj>)) |> ignore
-                                                                    | _ -> printfn "No mathing results"
+                                                      | -1 -> result.Result |> updateLastTimestamp 
+                                                                            |> Seq.iteri(fun i x -> (getActor i) <! ReadyToProcess x) |> ignore
+                                                      | actorId -> (getActor result.ActorId) <! ReadyToProcess (updateLastTimestamp result.Result |> Seq.head ) |> ignore
                   | Stop _ -> system.Terminate().Wait() |> ignore
 
 let dataImporterSystem = spawn system "dataActor" (actorOf2 dataActor)

@@ -57,19 +57,25 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Akka">
-      <HintPath>..\Metering.Station.Data.Importer.Console\packages\Akka.1.1.3\lib\net45\Akka.dll</HintPath>
+      <HintPath>..\packages\Akka.1.1.3\lib\net45\Akka.dll</HintPath>
     </Reference>
     <Reference Include="Akka.FSharp">
-      <HintPath>..\Metering.Station.Data.Importer.Console\packages\Akka.FSharp.1.1.3\lib\net45\Akka.FSharp.dll</HintPath>
+      <HintPath>..\packages\Akka.FSharp.1.1.3\lib\net45\Akka.FSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="AWSSDK.Core">
+      <HintPath>..\packages\AWSSDK.Core.3.3.10.2\lib\net45\AWSSDK.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="AWSSDK.DynamoDBv2">
+      <HintPath>..\packages\AWSSDK.DynamoDBv2.3.3.4.3\lib\net45\AWSSDK.DynamoDBv2.dll</HintPath>
     </Reference>
     <Reference Include="FSharp.PowerPack">
-      <HintPath>..\Metering.Station.Data.Importer.Console\packages\FSPowerPack.Core.Community.3.0.0.0\lib\Net40\FSharp.PowerPack.dll</HintPath>
+      <HintPath>..\packages\FSPowerPack.Core.Community.3.0.0.0\Lib\Net40\FSharp.PowerPack.dll</HintPath>
     </Reference>
     <Reference Include="FSharp.PowerPack.Linq">
-      <HintPath>..\Metering.Station.Data.Importer.Console\packages\FSPowerPack.Linq.Community.3.0.0.0\lib\Net40\FSharp.PowerPack.Linq.dll</HintPath>
+      <HintPath>..\packages\FSPowerPack.Linq.Community.3.0.0.0\Lib\Net40\FSharp.PowerPack.Linq.dll</HintPath>
     </Reference>
     <Reference Include="FsPickler">
-      <HintPath>..\Metering.Station.Data.Importer.Console\packages\FsPickler.1.2.21\lib\net45\FsPickler.dll</HintPath>
+      <HintPath>..\packages\FsPickler.1.2.21\lib\net45\FsPickler.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core">
@@ -78,22 +84,22 @@
       <HintPath>$(MSBuildProgramFiles32)\Reference Assemblies\Microsoft\FSharp\.NETFramework\v4.0\$(TargetFSharpCoreVersion)\FSharp.Core.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\Metering.Station.Data.Importer.Console\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Collections.Immutable">
-      <HintPath>..\Metering.Station.Data.Importer.Console\packages\System.Collections.Immutable.1.1.36\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+      <HintPath>..\packages\System.Collections.Immutable.1.3.1\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
     </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ValueTuple">
-      <HintPath>..\Metering.Station.Data.Importer.Console\packages\System.ValueTuple.4.3.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
+      <HintPath>..\packages\System.ValueTuple.4.3.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Metering.Station.Data.Importer.Console\Metering.Station.Data.Importer.Amazon\Metering.Station.Data.Importer.Amazon.fsproj">
+    <ProjectReference Include="..\Metering.Station.Data.Importer.Amazon\Metering.Station.Data.Importer.Amazon.fsproj">
       <Name>Metering.Station.Data.Importer.Amazon</Name>
       <Project>{ed88dd33-50ef-4827-9167-e94d8a50408f}</Project>
       <Private>True</Private>
