@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26228.9
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Metering.Station.Data.Importer.Console", "Metering.Station.Data.Importer.Console\Metering.Station.Data.Importer.Console.fsproj", "{709285B1-2805-4E51-993A-3057EEE5AAF4}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Metering.Station.Data.Importer.Core", "..\Metering.Station.Data.Importer.Core\Metering.Station.Data.Importer.Core.fsproj", "{BC14BED0-F440-4797-B99A-D8430D956FDA}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Metering.Station.Data.Importer.Amazon", "Metering.Station.Data.Importer.Amazon\Metering.Station.Data.Importer.Amazon.fsproj", "{ED88DD33-50EF-4827-9167-E94D8A50408F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{709285B1-2805-4E51-993A-3057EEE5AAF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{709285B1-2805-4E51-993A-3057EEE5AAF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{709285B1-2805-4E51-993A-3057EEE5AAF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{709285B1-2805-4E51-993A-3057EEE5AAF4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC14BED0-F440-4797-B99A-D8430D956FDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC14BED0-F440-4797-B99A-D8430D956FDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC14BED0-F440-4797-B99A-D8430D956FDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC14BED0-F440-4797-B99A-D8430D956FDA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED88DD33-50EF-4827-9167-E94D8A50408F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED88DD33-50EF-4827-9167-E94D8A50408F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED88DD33-50EF-4827-9167-E94D8A50408F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED88DD33-50EF-4827-9167-E94D8A50408F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
