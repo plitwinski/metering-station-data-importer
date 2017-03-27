@@ -52,6 +52,7 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="DeviceActorStore.fs" />
     <Compile Include="ActorSystem.fs" />
     <Content Include="packages.config" />
   </ItemGroup>
@@ -99,8 +100,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Metering.Station.Data.Importer.Amazon\Metering.Station.Data.Importer.Amazon.fsproj">
-      <Name>Metering.Station.Data.Importer.Amazon</Name>
+    <ProjectReference Include="..\Metering.Station.Data.Importer.Amazon\Metering.Station.Data.Importer.Aws.fsproj">
+      <Name>Metering.Station.Data.Importer.Aws</Name>
       <Project>{ed88dd33-50ef-4827-9167-e94d8a50408f}</Project>
       <Private>True</Private>
     </ProjectReference>

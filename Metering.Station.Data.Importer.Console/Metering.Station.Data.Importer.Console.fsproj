@@ -98,6 +98,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Metering.Station.Data.Importer.Amazon\Metering.Station.Data.Importer.Aws.fsproj">
+      <Name>Metering.Station.Data.Importer.Aws</Name>
+      <Project>{ed88dd33-50ef-4827-9167-e94d8a50408f}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Metering.Station.Data.Importer.Core\Metering.Station.Data.Importer.Core.fsproj">
       <Name>Metering.Station.Data.Importer.Core</Name>
       <Project>{bc14bed0-f440-4797-b99a-d8430d956fda}</Project>

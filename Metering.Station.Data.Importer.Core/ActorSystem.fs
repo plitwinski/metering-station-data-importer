@@ -8,66 +8,113 @@ open System.Linq
 open Akka.FSharp
 open Akka.Actor
 
-open Metering.Station.Data.Importer.Amazon.AirQualityData
+open Metering.Station.Data.Importer.Aws.AirQualityData
+open DeviceActorStore
 
-
-type DynamoDocument = Dictionary<string,AttributeValue>
-type DownloadResult = { ActorId: int; Result: seq<DynamoDocument> }
-type ImporterMsg =  
+type DeviceMsg =
     | Start
     | Stop
-    | WorkerFinished of int
-    | DownloadFinished of DownloadResult
+    | StartDownloading
+    | DownloadFinished of seq<AirQualitResult>
+    | WorkerFinished
+    | WorkerReady
+    | NoMoreWork
+    | ToggleWork
+
 type WorkerMsg =
-    | ReadyToProcess of DynamoDocument
+    | DataReady
+    | WorkToProcess of AirQualitResult
 
 
 let system = System.create "system" (Configuration.defaultConfig())  
+
+let getActor (mailbox: Actor<'a>) spawnChild prefix id = 
+        let actorName = prefix + id.ToString() 
+        let actorRef = mailbox.Context.Child(actorName)
+        if actorRef.IsNobody() then
+          spawnChild actorName id
+        else 
+          actorRef
 
 let worker (mailbox: Actor<'a>) id = 
     let rec imp () =
        actor {
          let! msg = mailbox.Receive()
          match msg with 
-               | ReadyToProcess item -> printfn "Worker %s %s" mailbox.Context.Self.Path.Name (item.Item("serverTime").N)
-                                        mailbox.Context.Parent <! WorkerFinished id
+               | DataReady -> mailbox.Context.Parent <! WorkerReady
+               | WorkToProcess item ->  printfn "%s %s" mailbox.Context.Self.Path.Name (item.TimeStamp)
+                                        mailbox.Context.Parent <! WorkerFinished
+                                        |> ignore
          return! imp ()
        }
     imp()
 
-let dataActor (mailbox: Actor<'a>) = 
+let deviceActor (mailbox: Actor<'a>) = 
+    let deviceId = "199404a7-0771-46a2-b4ca-04c93b7ec229"
+    let workerPrefix = "Worker_"
+    let lastProcessedTimestamp = "1490535976"
+
     let spawnChild name id = spawn mailbox name <| fun childMailbox -> worker childMailbox id
 
-    let getActor id = 
-        let actorName = "worker_" + id.ToString() 
-        let actorRef = mailbox.Context.Child(actorName)
-        if actorRef.IsNobody() then
-          spawnChild actorName id
-        else 
-          actorRef
-     
-    let awaitDownload (dataImporterActor: Actor<'a>) actorId  = fun (task : Task<List<DynamoDocument>>) ->
-        if task.IsFaulted then raise task.Exception
-        if task.IsCompleted then
-            dataImporterActor.Self <! DownloadFinished { Result = task.Result; ActorId = actorId }
+    let continueWith = fun (resultAsync : Async<seq<AirQualitResult>>) -> 
+                async {
+                    let! result = resultAsync
+                    if  Seq.isEmpty result then
+                        return NoMoreWork
+                    else
+                        return DownloadFinished result
+                }    
 
-    let mutable lastTimestamp = "1490440921"
-    let initialItemsToProcess = 4
+    let noOfWorkers = 4
+    let ready = fun msg -> match msg with
+                                       | Start -> mailbox.Self <! StartDownloading
+                                       | StartDownloading -> mailbox.Self <! ToggleWork
+                                                             match getLastTimeStamp() with
+                                                                    | Some ts -> ts
+                                                                    | None -> lastProcessedTimestamp 
+                                                             |> getMessagesAsync deviceId noOfWorkers
+                                                             |> continueWith |!> mailbox.Self |> ignore                   
+                                       | WorkerReady ->  match getFromStore() with
+                                                                | Many item -> mailbox.Context.Sender <! WorkToProcess item |> ignore
+                                                                | Last item -> mailbox.Context.Sender <! WorkToProcess item
+                                                                               mailbox.Context.Self <! StartDownloading |> ignore
+                                                                | Empty ->  ()
+                                                                            
+                                       | NoMoreWork -> [1 .. noOfWorkers] |> Seq.iter(fun id -> let child = mailbox.Context.Child(workerPrefix + id.ToString())
+                                                                                                mailbox.Context.Stop(child))
+                                                       mailbox.Self <! Stop
+                                       | Stop -> printfn "Stopped"
+                                                 mailbox.Self <! ToggleWork
+                                                 //system.Terminate().Wait() |> ignore
+                                       | _ -> ()
 
-    let updateLastTimestamp = fun (documents: seq<DynamoDocument>) ->
-        let maxValue = documents |> Seq.map(fun p -> p.Item("serverTime").N) 
-                                 |> Seq.sortBy(fun p -> p)
-                                 |> Seq.last
-        lastTimestamp <- maxValue
-        documents
+    let working = fun msg -> match msg with
+                                       | DownloadFinished result ->  saveToStore result
+                                                                     [1 .. noOfWorkers] |> Seq.iter(fun id -> (getActor mailbox spawnChild workerPrefix id) <! DataReady)
+                                                                                        |> ignore
+                                                                     mailbox.Self <! ToggleWork
+                                       | NoMoreWork ->  mailbox.Self <! ToggleWork
+                                       | _ -> ()
     
-    fun msg -> match msg with
-                  | Start _ -> (getMessagesAsync lastTimestamp initialItemsToProcess).ContinueWith(awaitDownload mailbox -1) |> ignore
-                  | WorkerFinished actorId -> (getMessagesAsync lastTimestamp initialItemsToProcess).ContinueWith(awaitDownload mailbox actorId) |> ignore
-                  | DownloadFinished result -> match result.ActorId with
-                                                      | -1 -> result.Result |> updateLastTimestamp 
-                                                                            |> Seq.iteri(fun i x -> (getActor i) <! ReadyToProcess x) |> ignore
-                                                      | actorId -> (getActor result.ActorId) <! ReadyToProcess (updateLastTimestamp result.Result |> Seq.head ) |> ignore
-                  | Stop _ -> system.Terminate().Wait() |> ignore
+    let rec runningActor () =
+        actor {
+            let! message = mailbox.Receive ()
+            ready message
+            match message with
+            | ToggleWork -> return! pausedActor ()
+            | _ -> return! runningActor ()
+        }
+    and pausedActor () =
+        actor {
+            let! message = mailbox.Receive ()
+            working message
+            match message with
+            | ToggleWork -> 
+                mailbox.UnstashAll ()
+                return! runningActor ()
+            | _ ->  mailbox.Stash ()
+                    return! pausedActor ()
+        }
+    runningActor ()
 
-let dataImporterSystem = spawn system "dataActor" (actorOf2 dataActor)
+let dataImporterSystem = spawn system "deviceActor" deviceActor
