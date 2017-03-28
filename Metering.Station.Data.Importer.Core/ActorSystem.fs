@@ -1,31 +1,11 @@
 ﻿module Metering.Station.Data.Importer.Core.ActorSystem
 
-open System.Threading.Tasks
-open Amazon.DynamoDBv2.DocumentModel
-open System.Collections.Generic
-open Amazon.DynamoDBv2.Model
-open System.Linq
 open Akka.FSharp
 open Akka.Actor
-
 open Metering.Station.Data.Importer.Aws.AirQualityData
 open DeviceActorStore
-
-type DeviceMsg =
-    | Start
-    | Stop
-    | StartDownloading
-    | DownloadFinished of seq<AirQualitResult>
-    | WorkerFinished
-    | WorkerReadyToStop
-    | WorkerReady
-    | NoMoreWork
-    | ToggleWork
-
-type WorkerMsg =
-    | DataReady
-    | PrepareWorkerToStop
-    | WorkToProcess of AirQualitResult
+open ActorHelpers
+open Messages
 
 
 let system = System.create "system" (Configuration.defaultConfig())  
@@ -38,7 +18,7 @@ let getActor (mailbox: Actor<'a>) spawnChild prefix id =
         else 
           actorRef
 
-let worker (mailbox: Actor<'a>) id = 
+let workerActor (mailbox: Actor<'a>) id = 
     let rec imp () =
        actor {
          let! msg = mailbox.Receive()
@@ -48,6 +28,7 @@ let worker (mailbox: Actor<'a>) id =
                                         mailbox.Context.Parent <! WorkerFinished
                                         |> ignore
                | PrepareWorkerToStop -> mailbox.Context.Parent <! WorkerReadyToStop
+               | _ -> ()
          return! imp ()
        }
     imp()
@@ -57,7 +38,7 @@ let deviceActor (mailbox: Actor<'a>) =
     let workerPrefix = "Worker_"
     let lastProcessedTimestamp = "1490535976"
 
-    let spawnChild name id = spawn mailbox name <| fun childMailbox -> worker childMailbox id
+    let spawnChild name id = spawn mailbox name <| fun childMailbox -> workerActor childMailbox id
 
     let continueWith = fun (resultAsync : Async<seq<AirQualitResult>>) -> 
                 async {
@@ -69,9 +50,15 @@ let deviceActor (mailbox: Actor<'a>) =
                 }    
 
     let noOfWorkers = 4
-    let ready = fun msg -> match msg with
+    let mutable currentNoOfWorkers = noOfWorkers
+
+    let mutable isWorking = false    
+    let startWorking = fun() -> isWorking <- true
+    let stopWorking = fun() -> isWorking <- false
+
+    let ready =  fun msg -> match msg with
                                        | Start -> mailbox.Self <! StartDownloading
-                                       | StartDownloading -> mailbox.Self <! ToggleWork
+                                       | StartDownloading -> startWorking()
                                                              match getLastTimeStamp() with
                                                                     | Some ts -> ts
                                                                     | None -> lastProcessedTimestamp 
@@ -81,45 +68,24 @@ let deviceActor (mailbox: Actor<'a>) =
                                                                 | Many item -> mailbox.Context.Sender <! WorkToProcess item |> ignore
                                                                 | Last item -> mailbox.Context.Sender <! WorkToProcess item
                                                                                mailbox.Context.Self <! StartDownloading |> ignore
-                                                                | Empty ->  ()
-                                                                            
-                                       | NoMoreWork -> [1 .. noOfWorkers] |> Seq.iter(fun id -> (getActor mailbox spawnChild workerPrefix id) <! PrepareWorkerToStop)
-                                                       mailbox.Self <! Stop
-                                       | WorkerReadyToStop -> let noOfChildren = mailbox.Context.GetChildren().Count() - 1
-                                                              mailbox.Context.Stop(mailbox.Context.Sender)
-                                                              if noOfChildren = 0 then
-                                                                mailbox.Self <! Stop
+                                                                | Empty ->  ()                         
+                                       | WorkerReadyToStop -> mailbox.Context.Stop(mailbox.Context.Sender)
+                                                              currentNoOfWorkers <- currentNoOfWorkers - 1
+                                                              if currentNoOfWorkers = 0 then
+                                                                  mailbox.Self <! Stop
                                        | Stop -> printfn "Stopped"
                                                  //system.Terminate().Wait() |> ignore
                                        | _ -> ()
 
     let working = fun msg -> match msg with
-                                       | DownloadFinished result ->  saveToStore result
+                                       | DownloadFinished result ->  stopWorking()
+                                                                     saveToStore result
                                                                      [1 .. noOfWorkers] |> Seq.iter(fun id -> (getActor mailbox spawnChild workerPrefix id) <! DataReady)
                                                                                         |> ignore
-                                                                     mailbox.Self <! ToggleWork
-                                       | NoMoreWork ->  mailbox.Self <! ToggleWork
+                                       | NoMoreWork ->  stopWorking()
+                                                        [1 .. noOfWorkers] |> Seq.iter(fun id -> (getActor mailbox spawnChild workerPrefix id) <! PrepareWorkerToStop)
                                        | _ -> ()
-    
-    let rec runningActor () =
-        actor {
-            let! message = mailbox.Receive ()
-            ready message
-            match message with
-            | ToggleWork -> return! pausedActor ()
-            | _ -> return! runningActor ()
-        }
-    and pausedActor () =
-        actor {
-            let! message = mailbox.Receive ()
-            working message
-            match message with
-            | ToggleWork -> 
-                mailbox.UnstashAll ()
-                return! runningActor ()
-            | _ ->  mailbox.Stash ()
-                    return! pausedActor ()
-        }
-    runningActor ()
+
+    actorOfState mailbox ready working (fun() -> isWorking)()
 
 let dataImporterSystem = spawn system "deviceActor" deviceActor

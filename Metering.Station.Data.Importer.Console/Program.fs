@@ -1,5 +1,6 @@
 ﻿open Akka.FSharp
 
+open Metering.Station.Data.Importer.Core.Messages
 open Metering.Station.Data.Importer.Core.ActorSystem
 
 [<EntryPoint>]
