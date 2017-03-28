@@ -17,12 +17,14 @@ type DeviceMsg =
     | StartDownloading
     | DownloadFinished of seq<AirQualitResult>
     | WorkerFinished
+    | WorkerReadyToStop
     | WorkerReady
     | NoMoreWork
     | ToggleWork
 
 type WorkerMsg =
     | DataReady
+    | PrepareWorkerToStop
     | WorkToProcess of AirQualitResult
 
 
@@ -45,6 +47,7 @@ let worker (mailbox: Actor<'a>) id =
                | WorkToProcess item ->  printfn "%s %s" mailbox.Context.Self.Path.Name (item.TimeStamp)
                                         mailbox.Context.Parent <! WorkerFinished
                                         |> ignore
+               | PrepareWorkerToStop -> mailbox.Context.Parent <! WorkerReadyToStop
          return! imp ()
        }
     imp()
@@ -80,11 +83,13 @@ let deviceActor (mailbox: Actor<'a>) =
                                                                                mailbox.Context.Self <! StartDownloading |> ignore
                                                                 | Empty ->  ()
                                                                             
-                                       | NoMoreWork -> [1 .. noOfWorkers] |> Seq.iter(fun id -> let child = mailbox.Context.Child(workerPrefix + id.ToString())
-                                                                                                mailbox.Context.Stop(child))
+                                       | NoMoreWork -> [1 .. noOfWorkers] |> Seq.iter(fun id -> (getActor mailbox spawnChild workerPrefix id) <! PrepareWorkerToStop)
                                                        mailbox.Self <! Stop
+                                       | WorkerReadyToStop -> let noOfChildren = mailbox.Context.GetChildren().Count() - 1
+                                                              mailbox.Context.Stop(mailbox.Context.Sender)
+                                                              if noOfChildren = 0 then
+                                                                mailbox.Self <! Stop
                                        | Stop -> printfn "Stopped"
-                                                 mailbox.Self <! ToggleWork
                                                  //system.Terminate().Wait() |> ignore
                                        | _ -> ()
 
