@@ -6,6 +6,7 @@ type WorkerMsg =
     | DataReady
     | PrepareWorkerToStop
     | WorkToProcess of AirQualityResult
+    | ProcessingFinished
 
 type DeviceMsg =
     | StartDevice 
