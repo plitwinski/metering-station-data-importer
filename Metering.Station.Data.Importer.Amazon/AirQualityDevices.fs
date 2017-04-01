@@ -19,8 +19,8 @@ let getDevicesListAsync maxDevices marker = async {
                                                 let request = new ListObjectsRequest()
                                                 request.BucketName <- "air-quality-meter-devices"
                                                 request.Marker <- match marker with
-                                                                        | null | "" -> null
-                                                                        | m -> m
+                                                                        | Some m -> m
+                                                                        | None -> null
                                                 request.MaxKeys <- maxDevices
                                                 let client = getAmazonS3Client()
                                                 let! response = awaitTask (client.ListObjectsAsync(request))

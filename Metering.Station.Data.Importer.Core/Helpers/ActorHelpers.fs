@@ -3,11 +3,10 @@
 open Akka.FSharp
 open Akka.Actor
 
-let getActor (mailbox: Actor<'a>) spawnChild prefix id = 
-        let actorName = prefix + id.ToString() 
-        let actorRef = mailbox.Context.Child(actorName)
+let getActor (mailbox: Actor<'a>) spawnChild childName  = 
+        let actorRef = mailbox.Context.Child(childName)
         if actorRef.IsNobody() then
-          spawnChild actorName id
+          spawnChild childName
         else 
           actorRef
 

@@ -8,11 +8,24 @@ type WorkerMsg =
     | WorkToProcess of AirQualityResult
 
 type DeviceMsg =
-    | Start 
-    | Stop
-    | StartDownloading of Option<string>
-    | DownloadFinished of seq<AirQualityResult>
+    | StartDevice 
+    | StopDevice
+    | DeviceDataReady
+    | StartDownloadingDevice of Option<string>
+    | DownloadFinishedDevice of seq<AirQualityResult>
     | WorkerFinished
     | WorkerReadyToStop
     | WorkerReady
+    | NoMoreWorkDevice
+
+type CommanderMsg =
+    | Start 
+    | Stop
+    | StartDownloading of Option<string>
+    | DownloadFinished of seq<string>
+    | DeviceFinished
+    | DeviceRequestsWork
+    //| WorkerFinished
+    //| WorkerReadyToStop
+    //| WorkerReady
     | NoMoreWork

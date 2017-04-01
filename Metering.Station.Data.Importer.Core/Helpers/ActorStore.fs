@@ -1,4 +1,4 @@
-﻿module Metering.Station.Data.Importer.Core.DeviceActorStore
+﻿module Metering.Station.Data.Importer.Core.ActorStore
 
 open Metering.Station.Data.Importer.Aws.AirQualityData
 open System.Collections.Generic

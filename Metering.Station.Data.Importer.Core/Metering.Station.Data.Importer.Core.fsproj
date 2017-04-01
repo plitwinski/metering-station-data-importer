@@ -57,6 +57,7 @@
     <Compile Include="Helpers\ActorStore.fs" />
     <Compile Include="Actors\WorkerActor.fs" />
     <Compile Include="Actors\DeviceActor.fs" />
+    <Compile Include="Actors\CommanderActor.fs" />
     <Compile Include="ActorSystem.fs" />
     <Content Include="packages.config" />
   </ItemGroup>
