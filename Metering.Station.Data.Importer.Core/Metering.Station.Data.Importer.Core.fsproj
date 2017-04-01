@@ -51,10 +51,12 @@
   </Choose>
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
-    <Compile Include="Messages.fs" />
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="ActorHelpers.fs" />
-    <Compile Include="DeviceActorStore.fs" />
+    <Compile Include="Messages.fs" />
+    <Compile Include="Helpers\ActorHelpers.fs" />
+    <Compile Include="Helpers\ActorStore.fs" />
+    <Compile Include="Actors\WorkerActor.fs" />
+    <Compile Include="Actors\DeviceActor.fs" />
     <Compile Include="ActorSystem.fs" />
     <Content Include="packages.config" />
   </ItemGroup>

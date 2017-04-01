@@ -3,6 +3,14 @@
 open Akka.FSharp
 open Akka.Actor
 
+let getActor (mailbox: Actor<'a>) spawnChild prefix id = 
+        let actorName = prefix + id.ToString() 
+        let actorRef = mailbox.Context.Child(actorName)
+        if actorRef.IsNobody() then
+          spawnChild actorName id
+        else 
+          actorRef
+
 let actorOfState (m: Actor<'a>) (ready: 'a -> unit) (work: 'a -> unit) becomeWorking = fun() ->
         let rec runningActor () =
             actor {

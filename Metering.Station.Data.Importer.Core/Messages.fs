@@ -5,13 +5,13 @@ open Metering.Station.Data.Importer.Aws.AirQualityData
 type WorkerMsg =
     | DataReady
     | PrepareWorkerToStop
-    | WorkToProcess of AirQualitResult
+    | WorkToProcess of AirQualityResult
 
 type DeviceMsg =
-    | Start
+    | Start 
     | Stop
-    | StartDownloading
-    | DownloadFinished of seq<AirQualitResult>
+    | StartDownloading of Option<string>
+    | DownloadFinished of seq<AirQualityResult>
     | WorkerFinished
     | WorkerReadyToStop
     | WorkerReady
