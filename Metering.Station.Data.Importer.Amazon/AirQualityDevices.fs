@@ -4,7 +4,7 @@ open Amazon.S3
 open Amazon.S3.Model
 open System.Threading.Tasks
 
-let awaitTask (task : Task<'a>) =
+let private awaitTask (task : Task<'a>) =
     async {
         do! task |> Async.AwaitIAsyncResult |> Async.Ignore
         if task.IsFaulted then raise task.Exception
@@ -13,20 +13,22 @@ let awaitTask (task : Task<'a>) =
 
 let getAmazonS3Client = fun() -> new AmazonS3Client(Amazon.RegionEndpoint.EUWest1)
 
-
-
-let getDevicesListAsync maxDevices marker = async {
-                                                let request = new ListObjectsRequest()
-                                                request.BucketName <- "air-quality-meter-devices"
-                                                request.Marker <- match marker with
-                                                                        | Some m -> m
-                                                                        | None -> null
-                                                request.MaxKeys <- maxDevices
-                                                let client = getAmazonS3Client()
-                                                let! response = awaitTask (client.ListObjectsAsync(request))
-                                                let result = response.S3Objects |> Seq.map (fun x -> x.Key)
-                                                return result
-                                            }
+let getDevicesListAsync maxDevices marker = 
+    async {
+        let request = new ListObjectsRequest()
+        request.BucketName <- "air-quality-meter-devices"
+        request.Marker <- match marker with
+                                | Some m -> m
+                                | None -> null
+        request.MaxKeys <- maxDevices
+        let client = getAmazonS3Client()
+        try
+            let! response = awaitTask (client.ListObjectsAsync(request))
+            let result = response.S3Objects |> Seq.map (fun x -> x.Key)
+            return result
+        finally
+            client.Dispose()
+    }
 
                                             
                                             

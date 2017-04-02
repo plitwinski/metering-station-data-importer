@@ -50,23 +50,26 @@ let private extractReading (payload : AttributeValue) = let clientId = payload.M
                                                         let asdasd = result.CreatedDate
                                                         result
 
-let getMessagesAsync deviceId itemsToTake lastTimeStamp = async {
-                             let tableName = "air-quality-results"
-                             let client = getAmazonClient()
-                             let values = new Dictionary<string, AttributeValue>()
-                             addAttribute values ":deviceId" deviceId (fun a -> fun v -> a.S <- v)
-                             addAttribute values ":serverTime" lastTimeStamp (fun a -> fun v -> a.N <- v)
-                             let queryRequest = new QueryRequest(tableName)
-                             queryRequest.ExpressionAttributeValues <- values
-                             queryRequest.KeyConditionExpression <- "deviceId = :deviceId"
-                             match lastTimeStamp with
-                                    | Some _ -> queryRequest.KeyConditionExpression <- "serverTime > :serverTime AND " + queryRequest.KeyConditionExpression
-                                    | None -> ()
+let getMessagesAsync deviceId itemsToTake lastTimeStamp = 
+     async {
+            let tableName = "air-quality-results"
+            let client = getAmazonClient()
+            try
+                let values = new Dictionary<string, AttributeValue>()
+                addAttribute values ":deviceId" deviceId (fun a -> fun v -> a.S <- v)
+                addAttribute values ":serverTime" lastTimeStamp (fun a -> fun v -> a.N <- v)
+                let queryRequest = new QueryRequest(tableName)
+                queryRequest.ExpressionAttributeValues <- values
+                queryRequest.KeyConditionExpression <- "deviceId = :deviceId"
+                match lastTimeStamp with
+                    | Some _ -> queryRequest.KeyConditionExpression <- "serverTime > :serverTime AND " + queryRequest.KeyConditionExpression
+                    | None -> ()
 
-                             queryRequest.Limit <- itemsToTake
-                             let! respone = awaitTask (client.QueryAsync(queryRequest))
-                             client.Dispose()
-                             return respone.Items |> Seq.map(fun x -> AirQualityResult(x.Item("deviceId").S, x.Item("serverTime").N, extractReading(x.Item("payload"))))
-                     }
+                queryRequest.Limit <- itemsToTake
+                let! respone = awaitTask (client.QueryAsync(queryRequest))
+                return respone.Items |> Seq.map(fun x -> AirQualityResult(x.Item("deviceId").S, x.Item("serverTime").N, extractReading(x.Item("payload"))))
+            finally
+                client.Dispose()                
+     }
                      
 

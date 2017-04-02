@@ -21,37 +21,31 @@ let private awaitTaskResult (task : Task<'a>) =
          return task.Result
     }
 
-let upsertAirQualityReading (reading: AirQualityDeviceReading) = async {
-                                let upsert (context:AirQualityContext) = async {
-                                        try
-                                            try
-                                                let! exists = context.Readings.AnyAsync(fun p -> p.MessageId = reading.MessageId) |> awaitTaskResult
-                                                if  exists = false then
-                                                    let itemToInsert = { Id = 0; 
-                                                                         ClientId = reading.ClientId; 
-                                                                         DeviceType = reading.DeviceType; 
-                                                                         MessageId = reading.MessageId;
-                                                                         CreatedDate = reading.CreatedDate;
-                                                                         Location = match reading.Location with
-                                                                                             | Some loc -> loc
-                                                                                             | None -> null;
-                                                                         PM10 = reading.PM10;
-                                                                         PM25 = reading.PM25
-                                                                       }
+let upsertAirQualityReading (reading: AirQualityDeviceReading) = 
+    async {
+        let upsert (context:AirQualityContext) = async {
+                try
+                    try
+                        let! exists = context.Readings.AnyAsync(fun p -> p.MessageId = reading.MessageId) |> awaitTaskResult
+                        if  exists = false then
+                            let itemToInsert = { Id = 0; 
+                                                 ClientId = reading.ClientId; 
+                                                 DeviceType = reading.DeviceType; 
+                                                 MessageId = reading.MessageId;
+                                                 CreatedDate = reading.CreatedDate;
+                                                 Location = match reading.Location with
+                                                                    | Some loc -> loc
+                                                                    | None -> null;
+                                                 PM10 = reading.PM10;
+                                                 PM25 = reading.PM25 }
 
-                                                    context.Readings.Add(itemToInsert) |> ignore
-                                                    do! context.SaveChangesAsync() |> awaitTask
-                                            with 
-                                                | :? DbUpdateException as ex  -> printfn "Duplicated message id: %s" reading.MessageId
-                                                | _ -> printfn "Unexpected message exception"
-                                        finally
-                                            context.Dispose()
-                                }
-                                do! upsert(new AirQualityContext())
-                           }
-                    
-let validateDatabase = fun () -> let dbContextValidator (context:AirQualityContext) = context.Database.Log <- fun log -> printfn "Database  '%s'" log
-                                                                                      let result = context.Database.CreateIfNotExists() 
-                                                                                      printfn "database exists '%b'" result
-                                                                                      result
-                                 using(new AirQualityContext())(dbContextValidator)
+                            context.Readings.Add(itemToInsert) |> ignore
+                            do! context.SaveChangesAsync() |> awaitTask
+                    with 
+                        | :? DbUpdateException as ex  -> printfn "Duplicated message id: %s" reading.MessageId
+                        | _ -> printfn "Unexpected message exception"
+                finally
+                    context.Dispose()
+        }
+        do! upsert(new AirQualityContext())
+    }

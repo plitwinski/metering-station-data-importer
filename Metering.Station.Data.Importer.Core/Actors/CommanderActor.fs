@@ -31,8 +31,7 @@ let commanderActor (mailbox: Actor<'a>) =
                     }    
 
         fun msg -> match msg with
-                          | Start -> validateDatabase() |> ignore
-                                     mailbox.Self <! StartDownloading None
+                          | Start -> mailbox.Self <! StartDownloading None
                           | StartDownloading lastDeviceId -> getDevicesListAsync maxNoOfParallelDevices lastDeviceId
                                                              |> continueWith |!> mailbox.Self |> ignore  
                           | DownloadFinished devices -> actorStore.saveToStore devices
