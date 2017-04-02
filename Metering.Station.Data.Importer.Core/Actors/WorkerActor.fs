@@ -4,8 +4,8 @@ open Akka.FSharp
 
 open Metering.Station.Data.Importer.Core.ActorHelpers
 open Metering.Station.Data.Importer.Core.Messages
+open Metering.Station.Data.Importer.DataAccess.DatabaseModule
 
-let private fakeDbUpdate = Async.Sleep(2000)
 
 let workerActor = fun (mailbox: Actor<'a>) -> 
     
@@ -23,7 +23,7 @@ let workerActor = fun (mailbox: Actor<'a>) ->
                                     | DataReady -> mailbox.Context.Parent <! WorkerReady
                                     | WorkToProcess item -> startWorking()
                                                             printfn "%s %s" (mailbox.Context.Self.Path.Parent.Name + "/" + mailbox.Context.Self.Path.Name) (item.TimeStamp)
-                                                            fakeDbUpdate |> continueWith |!> mailbox.Self |> ignore
+                                                            upsertAirQualityReading item.Payload |> continueWith |!> mailbox.Self |> ignore
                                     | PrepareWorkerToStop -> mailbox.Context.Parent <! WorkerReadyToStop
                                     | _ -> ()
 

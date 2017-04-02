@@ -9,14 +9,14 @@ open System.Collections.Generic
 open Metering.Station.Data.Importer.Definitions.Models
 open System
 
-let awaitTask (task : Task<'a>) =
+let private awaitTask (task : Task<'a>) =
     async {
         do! task |> Async.AwaitIAsyncResult |> Async.Ignore
         if task.IsFaulted then raise task.Exception
         return task.Result
     }
 
-let getAmazonClient = fun() -> new AmazonDynamoDBClient(Amazon.RegionEndpoint.EUWest1)
+let private getAmazonClient = fun() -> new AmazonDynamoDBClient(Amazon.RegionEndpoint.EUWest1)
 
 let private addAttribute (values: Dictionary<string, AttributeValue>) key value applyAttribute =
                             match value with
