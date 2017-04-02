@@ -5,14 +5,14 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>ed88dd33-50ef-4827-9167-e94d8a50408f</ProjectGuid>
+    <ProjectGuid>4551f121-ee48-46a6-aa08-dc834c073056</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Metering.Station.Data.Importer.Amazon</RootNamespace>
-    <AssemblyName>Metering.Station.Data.Importer.Amazon</AssemblyName>
+    <RootNamespace>Metering.Station.Data.Importer.DataAccess</RootNamespace>
+    <AssemblyName>Metering.Station.Data.Importer.DataAccess</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>4.4.1.0</TargetFSharpCoreVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <Name>Metering.Station.Data.Importer.Aws</Name>
+    <Name>Metering.Station.Data.Importer.DataAccess</Name>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -52,19 +52,20 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="AirQualityData.fs" />
     <Content Include="packages.config" />
-    <Compile Include="AirQualityDevices.fs" />
+    <Compile Include="DataModels.fs" />
+    <Compile Include="AirQualityContext.fs" />
+    <Compile Include="DatabaseModule.fs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="AWSSDK.Core">
-      <HintPath>..\packages\AWSSDK.Core.3.3.10.2\lib\net45\AWSSDK.Core.dll</HintPath>
+    <Reference Include="EntityFramework">
+      <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
-    <Reference Include="AWSSDK.DynamoDBv2">
-      <HintPath>..\packages\AWSSDK.DynamoDBv2.3.3.4.3\lib\net45\AWSSDK.DynamoDBv2.dll</HintPath>
+    <Reference Include="EntityFramework.SqlServer">
+      <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
-    <Reference Include="AWSSDK.S3">
-      <HintPath>..\packages\AWSSDK.S3.3.3.5.10\lib\net45\AWSSDK.S3.dll</HintPath>
+    <Reference Include="EntityFramework6.Npgsql">
+      <HintPath>..\packages\EntityFramework6.Npgsql.3.1.1\lib\net45\EntityFramework6.Npgsql.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core">
@@ -72,19 +73,17 @@
       <AssemblyName>FSharp.Core.dll</AssemblyName>
       <HintPath>$(MSBuildProgramFiles32)\Reference Assemblies\Microsoft\FSharp\.NETFramework\v4.0\$(TargetFSharpCoreVersion)\FSharp.Core.dll</HintPath>
     </Reference>
+    <Reference Include="Npgsql">
+      <HintPath>..\packages\Npgsql.3.1.4\lib\net451\Npgsql.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.ValueTuple">
       <HintPath>..\packages\System.ValueTuple.4.3.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
     </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Metering.Station.Data.Importer.Definitions\Metering.Station.Data.Importer.Definitions.fsproj">
-      <Name>Metering.Station.Data.Importer.Definitions</Name>
-      <Project>{1a69d204-7e39-4cb0-84b1-1192958abc61}</Project>
-      <Private>True</Private>
-    </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

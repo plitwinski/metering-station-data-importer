@@ -7,6 +7,7 @@ open Metering.Station.Data.Importer.Core.ActorStore
 open Metering.Station.Data.Importer.Aws.AirQualityData
 open Metering.Station.Data.Importer.Core.Messages
 open Metering.Station.Data.Importer.Core.Actors.WorkerActor
+open Metering.Station.Data.Importer.Definitions.Models
 
 [<Literal>]
 let private workerPrefix = "Worker_"

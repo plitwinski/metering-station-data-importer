@@ -110,6 +110,16 @@
       <Project>{ed88dd33-50ef-4827-9167-e94d8a50408f}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\Metering.Station.Data.Importer.DataAccess\Metering.Station.Data.Importer.DataAccess.fsproj">
+      <Name>Metering.Station.Data.Importer.DataAccess</Name>
+      <Project>{4551f121-ee48-46a6-aa08-dc834c073056}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Metering.Station.Data.Importer.Definitions\Metering.Station.Data.Importer.Definitions.fsproj">
+      <Name>Metering.Station.Data.Importer.Definitions</Name>
+      <Project>{1a69d204-7e39-4cb0-84b1-1192958abc61}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

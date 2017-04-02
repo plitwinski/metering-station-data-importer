@@ -5,15 +5,14 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>ed88dd33-50ef-4827-9167-e94d8a50408f</ProjectGuid>
+    <ProjectGuid>1a69d204-7e39-4cb0-84b1-1192958abc61</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Metering.Station.Data.Importer.Amazon</RootNamespace>
-    <AssemblyName>Metering.Station.Data.Importer.Amazon</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <RootNamespace>Metering.Station.Data.Importer.Definitions</RootNamespace>
+    <AssemblyName>Metering.Station.Data.Importer.Definitions</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>4.4.1.0</TargetFSharpCoreVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <Name>Metering.Station.Data.Importer.Aws</Name>
-    <TargetFrameworkProfile />
+    <Name>Metering.Station.Data.Importer.Definitions</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -52,20 +51,10 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="AirQualityData.fs" />
     <Content Include="packages.config" />
-    <Compile Include="AirQualityDevices.fs" />
+    <Compile Include="Models.fs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="AWSSDK.Core">
-      <HintPath>..\packages\AWSSDK.Core.3.3.10.2\lib\net45\AWSSDK.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="AWSSDK.DynamoDBv2">
-      <HintPath>..\packages\AWSSDK.DynamoDBv2.3.3.4.3\lib\net45\AWSSDK.DynamoDBv2.dll</HintPath>
-    </Reference>
-    <Reference Include="AWSSDK.S3">
-      <HintPath>..\packages\AWSSDK.S3.3.3.5.10\lib\net45\AWSSDK.S3.dll</HintPath>
-    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core">
       <Name>FSharp.Core</Name>
@@ -78,13 +67,6 @@
     <Reference Include="System.ValueTuple">
       <HintPath>..\packages\System.ValueTuple.4.3.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
     </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Metering.Station.Data.Importer.Definitions\Metering.Station.Data.Importer.Definitions.fsproj">
-      <Name>Metering.Station.Data.Importer.Definitions</Name>
-      <Project>{1a69d204-7e39-4cb0-84b1-1192958abc61}</Project>
-      <Private>True</Private>
-    </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

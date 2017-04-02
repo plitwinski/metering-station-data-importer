@@ -7,6 +7,7 @@ open Metering.Station.Data.Importer.Core.ActorStore
 open Metering.Station.Data.Importer.Core.Messages
 open Metering.Station.Data.Importer.Aws.AirQualityDevices
 open Metering.Station.Data.Importer.Core.ActorHelpers
+open Metering.Station.Data.Importer.DataAccess.DatabaseModule
 
 
 [<Literal>]
@@ -30,7 +31,8 @@ let commanderActor (mailbox: Actor<'a>) =
                     }    
 
         fun msg -> match msg with
-                          | Start -> mailbox.Self <! StartDownloading None
+                          | Start -> validateDatabase()
+                                     mailbox.Self <! StartDownloading None
                           | StartDownloading lastDeviceId -> getDevicesListAsync maxNoOfParallelDevices lastDeviceId
                                                              |> continueWith |!> mailbox.Self |> ignore  
                           | DownloadFinished devices -> actorStore.saveToStore devices

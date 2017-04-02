@@ -1,6 +1,7 @@
 ﻿module Metering.Station.Data.Importer.Core.Messages
 
 open Metering.Station.Data.Importer.Aws.AirQualityData
+open Metering.Station.Data.Importer.Definitions.Models
 
 type WorkerMsg =
     | DataReady
@@ -26,7 +27,4 @@ type CommanderMsg =
     | DownloadFinished of seq<string>
     | DeviceFinished
     | DeviceRequestsWork
-    //| WorkerFinished
-    //| WorkerReadyToStop
-    //| WorkerReady
     | NoMoreWork
