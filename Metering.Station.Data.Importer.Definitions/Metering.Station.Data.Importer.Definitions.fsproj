@@ -9,10 +9,11 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Metering.Station.Data.Importer.Definitions</RootNamespace>
     <AssemblyName>Metering.Station.Data.Importer.Definitions</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>4.4.1.0</TargetFSharpCoreVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Name>Metering.Station.Data.Importer.Definitions</Name>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
