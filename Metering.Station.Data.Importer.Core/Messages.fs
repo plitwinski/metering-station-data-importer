@@ -1,6 +1,5 @@
 ﻿module Metering.Station.Data.Importer.Core.Messages
 
-open Metering.Station.Data.Importer.Aws.AirQualityData
 open Metering.Station.Data.Importer.Definitions.Models
 
 type WorkerMsg =

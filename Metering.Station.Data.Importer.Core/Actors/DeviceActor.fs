@@ -18,17 +18,26 @@ let private markerCategory = "Devices"
 [<Literal>]
 let private noOfWorkers = 4
 
-let deviceActor deviceId = fun (mailbox: Actor<'a>) -> 
+let deviceActor deviceId = fun (mailbox: Actor<DeviceMsg>) -> 
     let spawnChild name = spawn mailbox name <| fun childMailbox -> workerActor childMailbox
+
+    let continueWithSync = fun (result : seq<AirQualityResult>) -> 
+                if  Seq.isEmpty result then
+                        NoMoreWorkDevice
+                    else
+                        DownloadFinishedDevice result 
 
     let continueWith = fun (resultAsync : Async<seq<AirQualityResult>>) -> 
                 async {
                     let! result = resultAsync
-                    if  Seq.isEmpty result then
-                        return NoMoreWorkDevice
-                    else
-                        return DownloadFinishedDevice result
+                    return continueWithSync result
                 }    
+
+    let parseToOptionInt (str: option<string>) : option<int> = 
+           match str with
+                | Some null -> None
+                | Some s -> Some (int s)
+                | None -> None
     
     let lastProcessedTimestamp = getMarker markerCategory deviceId
     let mutable currentNoOfWorkers = noOfWorkers
@@ -44,9 +53,12 @@ let deviceActor deviceId = fun (mailbox: Actor<'a>) ->
                                        | StartDownloadingDevice initialTimestamp -> startWorking()
                                                                                     match initialTimestamp with
                                                                                             | Some timeStamp -> Some(timeStamp)
-                                                                                            | None -> actorStore.getLastTimeStamp() 
-                                                                                     |> getMessagesAsync (Some(deviceId)) noOfWorkers
-                                                                                     |> continueWith |!> mailbox.Self |> ignore                   
+                                                                                            | None -> actorStore.getLastTimeStamp()
+                                                                                     |> parseToOptionInt
+                                                                                     |> getMessages getAmazonDynamoDb deviceId noOfWorkers
+                                                                                     |> continueWithSync 
+                                                                                     |> fun m -> mailbox.Self <! m
+                                                                                     |> ignore                   
                                        | WorkerReady ->  match actorStore.getFromStore() with
                                                                 | Many item -> mailbox.Context.Sender <! WorkToProcess item |> ignore
                                                                 | Last item -> mailbox.Context.Sender <! WorkToProcess item

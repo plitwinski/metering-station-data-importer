@@ -1,75 +1,55 @@
 ﻿module Metering.Station.Data.Importer.Aws.AirQualityData
 
-open System.Threading.Tasks
 open Amazon.DynamoDBv2
-open Amazon.DynamoDBv2.DocumentModel
-open System.Linq
-open Amazon.DynamoDBv2.Model
-open System.Collections.Generic
 open Metering.Station.Data.Importer.Definitions.Models
 open System
+open FSharp.AWS.DynamoDB
 
-let private awaitTask (task : Task<'a>) =
-    async {
-        do! task |> Async.AwaitIAsyncResult |> Async.Ignore
-        if task.IsFaulted then raise task.Exception
-        return task.Result
+type internal AirQualityPayload = {
+    clientId: string
+    deviceType: string
+    id: string
+    localTime: DateTimeOffset
+    location: string
+    PM10: int
+    ``PM2.5``: int
+    serverTime: int
+}
+
+type internal AirQualityReading = 
+    {
+       [<FSharp.AWS.DynamoDB.HashKey>]
+       deviceId : string
+       [<FSharp.AWS.DynamoDB.RangeKey>]
+       serverTime : int
+       payload: AirQualityPayload
     }
 
-let private getAmazonClient = fun() -> new AmazonDynamoDBClient(Amazon.RegionEndpoint.EUWest1)
+let private stringToOption (n : string) = 
+                               if String.IsNullOrWhiteSpace(n)
+                               then None 
+                               else Some n
 
-let private addAttribute (values: Dictionary<string, AttributeValue>) key value applyAttribute =
-                            match value with
-                                   | Some v -> let attribute = new AttributeValue ()
-                                               applyAttribute attribute v
-                                               values.Add(key, attribute)
-                                   | None -> ()
+let private extractPayload (r: AirQualityPayload) = 
+    let getLocalTime localTime (serverTimeStamp: int)  = 
+        let serverCreatedDate = (new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).AddSeconds((float serverTimeStamp))
+        let offsetMinutes = Math.Round((localTime - serverCreatedDate).TotalMinutes % 1440.0)
+        new DateTimeOffset(localTime, TimeSpan.FromMinutes(offsetMinutes))
 
-let private extractReading (payload : AttributeValue) = let clientId = payload.M.Item("clientId").S
-                                                        let deviceType = payload.M.Item("deviceType").S
-                                                        let messageId = payload.M.Item("id").S
-                                                        let localTime = payload.M.Item("localTime").S
-                                                        let location =  if payload.M.ContainsKey("location") then  
-                                                                           Some(payload.M.Item("location").S)
-                                                                        else 
-                                                                           None
-                                                        let pm10 = if payload.M.Item("PM10").N = null then
-                                                                      Convert.ToInt32(payload.M.Item("PM10").S)
-                                                                   else
-                                                                      Convert.ToInt32(payload.M.Item("PM10").N)
-                                                        let pm25 = if payload.M.Item("PM2.5").N = null then
-                                                                      Convert.ToInt32(payload.M.Item("PM2.5").S)
-                                                                   else
-                                                                      Convert.ToInt32(payload.M.Item("PM2.5").N)
-                                                        let serverTimeStamp = Convert.ToDouble(payload.M.Item("serverTime").N)
-                                                        let calculateCreateDate = let localCreatedDate = DateTime.Parse(localTime.Replace("Z", ""))
-                                                                                  let serverCreatedDate = (new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).AddSeconds(serverTimeStamp)
-                                                                                  let offsetMinutes = Math.Round((localCreatedDate - serverCreatedDate).TotalMinutes % 1440.0)
-                                                                                  new DateTimeOffset(localCreatedDate, TimeSpan.FromMinutes(offsetMinutes))
-                                                        let result = AirQualityDeviceReading(clientId, deviceType, messageId, location, pm10, pm25, calculateCreateDate)
-                                                        let asdasd = result.CreatedDate
-                                                        result
+    AirQualityDeviceReading(r.clientId, r.deviceType, r.id, stringToOption r.location, 
+                            r.PM10, r.``PM2.5``, getLocalTime r.localTime.DateTime r.serverTime)
 
-let getMessagesAsync deviceId itemsToTake lastTimeStamp = 
-     async {
-            let tableName = "air-quality-results"
-            let client = getAmazonClient()
-            try
-                let values = new Dictionary<string, AttributeValue>()
-                addAttribute values ":deviceId" deviceId (fun a -> fun v -> a.S <- v)
-                addAttribute values ":serverTime" lastTimeStamp (fun a -> fun v -> a.N <- v)
-                let queryRequest = new QueryRequest(tableName)
-                queryRequest.ExpressionAttributeValues <- values
-                queryRequest.KeyConditionExpression <- "deviceId = :deviceId"
-                match lastTimeStamp with
-                    | Some _ -> queryRequest.KeyConditionExpression <- "serverTime > :serverTime AND " + queryRequest.KeyConditionExpression
-                    | None -> ()
+let getAmazonDynamoDb = fun() -> new AmazonDynamoDBClient(Amazon.RegionEndpoint.EUWest1)
 
-                queryRequest.Limit <- itemsToTake
-                let! respone = awaitTask (client.QueryAsync(queryRequest))
-                return respone.Items |> Seq.map(fun x -> AirQualityResult(x.Item("deviceId").S, x.Item("serverTime").N, extractReading(x.Item("payload"))))
-            finally
-                client.Dispose()                
-     }
+let getMessages getAmazonDynamoDb deviceId (itemsToTake:int) lastTimeStamp = 
+    let tableName = "air-quality-results"
+    use client = getAmazonDynamoDb()
+    let table = TableContext.Create<AirQualityReading>(client, tableName = tableName, createIfNotExists = false)
+    let mutable keyQuery = <@ fun r -> r.deviceId = deviceId @>
+    if lastTimeStamp = None 
+    then keyQuery <- <@ fun r -> r.deviceId = deviceId @>
+    else keyQuery <- <@ fun r -> r.deviceId = deviceId && r.serverTime > lastTimeStamp.Value @>
+    let result = table.Query(keyCondition = keyQuery, limit = itemsToTake)
+    result |> Seq.map(fun x -> AirQualityResult(x.deviceId, x.serverTime.ToString(), extractPayload(x.payload)))
                      
 
