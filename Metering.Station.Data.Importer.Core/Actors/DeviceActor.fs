@@ -18,20 +18,14 @@ let private markerCategory = "Devices"
 [<Literal>]
 let private noOfWorkers = 4
 
-let deviceActor deviceId = fun (mailbox: Actor<DeviceMsg>) -> 
-    let spawnChild name = spawn mailbox name <| fun childMailbox -> workerActor childMailbox
+let deviceActor deviceId (settings: SystemSettings) = fun (mailbox: Actor<DeviceMsg>) -> 
+    let spawnChild name = spawn mailbox name <| fun childMailbox -> workerActor settings childMailbox
 
     let continueWithSync = fun (result : seq<AirQualityResult>) -> 
                 if  Seq.isEmpty result then
                         NoMoreWorkDevice
                     else
-                        DownloadFinishedDevice result 
-
-    let continueWith = fun (resultAsync : Async<seq<AirQualityResult>>) -> 
-                async {
-                    let! result = resultAsync
-                    return continueWithSync result
-                }    
+                        DownloadFinishedDevice result  
 
     let parseToOptionInt (str: option<string>) : option<int> = 
            match str with

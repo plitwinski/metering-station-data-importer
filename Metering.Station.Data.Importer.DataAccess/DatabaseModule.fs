@@ -4,8 +4,7 @@ open AirQualityContextModule
 open Metering.Station.Data.Importer.Definitions.Models
 open DataModels
 open System.Threading.Tasks
-open System.Data.Entity
-open System.Data.Entity.Infrastructure
+open Microsoft.EntityFrameworkCore
 
 
 let private awaitTask (task : Task) =
@@ -21,7 +20,7 @@ let private awaitTaskResult (task : Task<'a>) =
          return task.Result
     }
 
-let airQualityContextFactory = fun() -> new AirQualityContext()
+let airQualityContextFactory = fun(connectionString) -> new AirQualityContext(connectionString)
 
 let private mapReadingToEntity = fun (reading: AirQualityDeviceReading) -> { 
    Id = 0; 

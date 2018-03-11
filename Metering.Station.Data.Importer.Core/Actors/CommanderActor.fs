@@ -8,6 +8,7 @@ open Metering.Station.Data.Importer.Core.Messages
 open Metering.Station.Data.Importer.Aws.AirQualityDevices
 open Metering.Station.Data.Importer.Core.ActorHelpers
 open Metering.Station.Data.Importer.DataAccess.DatabaseModule
+open Metering.Station.Data.Importer.Definitions.Models
 
 
 [<Literal>]
@@ -19,8 +20,8 @@ let private devicePrefix = "Device_"
 let private actorStore = new ActorStore<string>(fun item -> item)
 let mutable private currentNoOfDevices = 0
 
-let commanderActor (mailbox: Actor<'a>) =
-        let spawnChild deviceId = spawn mailbox deviceId <| fun childMailbox -> deviceActor deviceId childMailbox
+let commanderActor (settings: SystemSettings) = fun (mailbox: Actor<'a>) ->
+        let spawnChild deviceId = spawn mailbox deviceId <| fun childMailbox -> deviceActor deviceId settings childMailbox
         let continueWith = fun (resultAsync : Async<seq<string>>) -> 
                     async {
                         let! result = resultAsync

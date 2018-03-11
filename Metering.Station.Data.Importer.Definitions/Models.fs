@@ -15,3 +15,6 @@ type AirQualityResult(deviceId, timeStamp, payload) =
     member this.TimeStamp: string = timeStamp
     member this.DeviceId: string = deviceId
     member this.Payload : AirQualityDeviceReading =  payload
+
+type SystemSettings(connectionString) =
+    member this.ConnectionString: string = connectionString

@@ -5,10 +5,14 @@ open Akka.FSharp
 open Metering.Station.Data.Importer.Core.ActorHelpers
 open Metering.Station.Data.Importer.Core.Messages
 open Metering.Station.Data.Importer.DataAccess.DatabaseModule
+open Metering.Station.Data.Importer.Definitions.Models
 
 
-let workerActor = fun (mailbox: Actor<'a>) -> 
-    
+
+
+let workerActor (settings: SystemSettings) = fun (mailbox: Actor<'a>) -> 
+    let contextFactory = fun() -> airQualityContextFactory(settings.ConnectionString)
+
     let continueWith = fun (resultAsync : Async<unit>) -> 
                 async {
                     do! resultAsync
@@ -23,7 +27,7 @@ let workerActor = fun (mailbox: Actor<'a>) ->
                                     | DataReady -> mailbox.Context.Parent <! WorkerReady
                                     | WorkToProcess item -> startWorking()
                                                             printfn "%s %s" (mailbox.Context.Self.Path.Parent.Name + "/" + mailbox.Context.Self.Path.Name) (item.TimeStamp)
-                                                            upsertAirQualityReading airQualityContextFactory item.Payload |> continueWith |!> mailbox.Self |> ignore
+                                                            upsertAirQualityReading contextFactory item.Payload |> continueWith |!> mailbox.Self |> ignore
                                     | PrepareWorkerToStop -> mailbox.Context.Parent <! WorkerReadyToStop
                                     | _ -> ()
 

@@ -2,8 +2,10 @@
 
 open System.ComponentModel.DataAnnotations
 open System
+open System.ComponentModel.DataAnnotations.Schema
 
 [<CLIMutable>]
+[<Table("AirQualityReadings", Schema = "public")>]
  type AirQualityReading = {
     [<Key>]Id:int
     ClientId:string
