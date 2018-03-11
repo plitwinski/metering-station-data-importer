@@ -21,31 +21,34 @@ let private awaitTaskResult (task : Task<'a>) =
          return task.Result
     }
 
-let upsertAirQualityReading (reading: AirQualityDeviceReading) = 
+let airQualityContextFactory = fun() -> new AirQualityContext()
+
+let private mapReadingToEntity = fun (reading: AirQualityDeviceReading) -> { 
+   Id = 0; 
+   ClientId = reading.ClientId; 
+   DeviceType = reading.DeviceType; 
+   MessageId = reading.MessageId;
+   CreatedDate = reading.CreatedDate;
+   Location = match reading.Location with
+                       | Some loc -> loc
+                       | None -> null;
+   PM10 = reading.PM10;
+   PM25 = reading.PM25 
+}
+
+let upsertAirQualityReading (contextFactory: unit -> AirQualityContext) (reading: AirQualityDeviceReading) = 
     async {
         let upsert (context:AirQualityContext) = async {
                 try
-                    try
-                        let! exists = context.Readings.AnyAsync(fun p -> p.MessageId = reading.MessageId) |> awaitTaskResult
-                        if  exists = false then
-                            let itemToInsert = { Id = 0; 
-                                                 ClientId = reading.ClientId; 
-                                                 DeviceType = reading.DeviceType; 
-                                                 MessageId = reading.MessageId;
-                                                 CreatedDate = reading.CreatedDate;
-                                                 Location = match reading.Location with
-                                                                    | Some loc -> loc
-                                                                    | None -> null;
-                                                 PM10 = reading.PM10;
-                                                 PM25 = reading.PM25 }
-
-                            context.Readings.Add(itemToInsert) |> ignore
-                            do! context.SaveChangesAsync() |> awaitTask
-                    with 
-                        | :? DbUpdateException as ex  -> printfn "Duplicated message id: %s" reading.MessageId
-                        | _ -> printfn "Unexpected message exception"
-                finally
-                    context.Dispose()
+                    let! exists = context.Readings.AnyAsync(fun p -> p.MessageId = reading.MessageId) |> awaitTaskResult
+                    if  exists = false then
+                        let itemToInsert = mapReadingToEntity reading
+                        context.Readings.Add(itemToInsert) |> ignore
+                        do! context.SaveChangesAsync() |> awaitTask
+                with 
+                    | :? DbUpdateException as ex  -> printfn "Duplicated message id: %s" reading.MessageId
+                    | _ -> printfn "Unexpected message exception"
         }
-        do! upsert(new AirQualityContext())
+        use context = contextFactory()
+        do! upsert(context)
     }

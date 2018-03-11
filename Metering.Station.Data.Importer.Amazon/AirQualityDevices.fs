@@ -21,14 +21,12 @@ let getDevicesListAsync maxDevices marker =
                                 | Some m -> m
                                 | None -> null
         request.MaxKeys <- maxDevices
-        let client = getAmazonS3Client()
-        try
-            let! response = awaitTask (client.ListObjectsAsync(request))
-            let result = response.S3Objects |> Seq.map (fun x -> x.Key)
-            return result
-        finally
-            client.Dispose()
+        use client = getAmazonS3Client()
+        let! response = awaitTask (client.ListObjectsAsync(request))
+        let result = response.S3Objects |> Seq.map (fun x -> x.Key)
+        return result
     }
+    
 
                                             
                                             
