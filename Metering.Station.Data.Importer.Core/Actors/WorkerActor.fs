@@ -6,6 +6,7 @@ open Metering.Station.Data.Importer.Core.ActorHelpers
 open Metering.Station.Data.Importer.Core.Messages
 open Metering.Station.Data.Importer.DataAccess.DatabaseModule
 open Metering.Station.Data.Importer.Definitions.Models
+open Akka.Actor
 
 let private continueWith = fun (resultAsync : Async<unit>) -> 
                 async {
@@ -13,15 +14,15 @@ let private continueWith = fun (resultAsync : Async<unit>) ->
                     return ProcessingFinished
                 }  
 
-let ready (mailbox: Actor<WorkerMsg>) =  fun saveReading -> 
+let ready (self, parent, getPath) =  fun saveReading -> 
                                          fun msg ->
                                                 match msg with
-                                                    | DataReady -> mailbox.Context.Parent <! WorkerReady 
+                                                    | DataReady -> parent <! WorkerReady 
                                                                    false
-                                                    | WorkToProcess item -> printfn "%s %s" (mailbox.Context.Self.Path.Parent.Name + "/" + mailbox.Context.Self.Path.Name) (item.TimeStamp)
-                                                                            saveReading item.Payload |> continueWith |!> mailbox.Self |> ignore
+                                                    | WorkToProcess item -> printfn "%s %s" (getPath()) (item.TimeStamp)
+                                                                            saveReading item.Payload |> continueWith |!> self |> ignore
                                                                             true
-                                                    | PrepareWorkerToStop -> mailbox.Context.Parent <! WorkerReadyToStop 
+                                                    | PrepareWorkerToStop -> parent <! WorkerReadyToStop 
                                                                              false
                                                     | _ -> false
 
@@ -32,6 +33,7 @@ let working (mailbox: Actor<WorkerMsg>) = fun msg -> match msg with
 
 let workerActor (settings: SystemSettings) = fun (mailbox: Actor<'a>) -> 
     let saveReading = upsertAirQualityReading settings.ConnectionString
-    let becomeReady = (ready mailbox) saveReading
+    let getPath = fun () -> (mailbox.Context.Self.Path.Parent.Name + "/" + mailbox.Context.Self.Path.Name)
+    let becomeReady = (ready (mailbox.Self, mailbox.Context.Parent, getPath)) saveReading
     let becomeWorking = working mailbox
     actorOfState mailbox becomeReady becomeWorking ()
