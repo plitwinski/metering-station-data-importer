@@ -10,13 +10,13 @@ let getActor (mailbox: Actor<'a>) spawnChild childName  =
         else 
           actorRef
 
-let actorOfState (m: Actor<'a>) (ready: 'a -> unit) (work: 'a -> unit) becomeWorking = fun() ->
+let actorOfState (m: Actor<'a>) (ready: 'a -> bool) (work: 'a -> bool) = fun() ->
         let rec runningActor () =
             actor {
                 let! message = m.Receive ()
-                ready message
+                let flipMode = ready message
                 
-                if becomeWorking() then 
+                if flipMode then 
                     return! pausedActor ()
                 else
                     return! runningActor ()
@@ -24,9 +24,9 @@ let actorOfState (m: Actor<'a>) (ready: 'a -> unit) (work: 'a -> unit) becomeWor
         and pausedActor () =
             actor {
                 let! message = m.Receive ()
-                work message
+                let flipMode = work message
 
-                if becomeWorking() = false then
+                if flipMode then
                     m.UnstashAll ()
                     return! runningActor ()
                 else

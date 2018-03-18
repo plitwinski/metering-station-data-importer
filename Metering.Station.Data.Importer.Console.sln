@@ -3,15 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26228.9
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Metering.Station.Data.Importer.Console", "Metering.Station.Data.Importer.Console\Metering.Station.Data.Importer.Console.fsproj", "{709285B1-2805-4E51-993A-3057EEE5AAF4}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Metering.Station.Data.Importer.Console", "Metering.Station.Data.Importer.Console\Metering.Station.Data.Importer.Console.fsproj", "{709285B1-2805-4E51-993A-3057EEE5AAF4}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Metering.Station.Data.Importer.Core", "Metering.Station.Data.Importer.Core\Metering.Station.Data.Importer.Core.fsproj", "{BC14BED0-F440-4797-B99A-D8430D956FDA}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Metering.Station.Data.Importer.Core", "Metering.Station.Data.Importer.Core\Metering.Station.Data.Importer.Core.fsproj", "{BC14BED0-F440-4797-B99A-D8430D956FDA}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Metering.Station.Data.Importer.Aws", "Metering.Station.Data.Importer.Amazon\Metering.Station.Data.Importer.Aws.fsproj", "{ED88DD33-50EF-4827-9167-E94D8A50408F}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Metering.Station.Data.Importer.Aws", "Metering.Station.Data.Importer.Amazon\Metering.Station.Data.Importer.Aws.fsproj", "{ED88DD33-50EF-4827-9167-E94D8A50408F}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Metering.Station.Data.Importer.DataAccess", "Metering.Station.Data.Importer.DataAccess\Metering.Station.Data.Importer.DataAccess.fsproj", "{4551F121-EE48-46A6-AA08-DC834C073056}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Metering.Station.Data.Importer.DataAccess", "Metering.Station.Data.Importer.DataAccess\Metering.Station.Data.Importer.DataAccess.fsproj", "{4551F121-EE48-46A6-AA08-DC834C073056}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Metering.Station.Data.Importer.Definitions", "Metering.Station.Data.Importer.Definitions\Metering.Station.Data.Importer.Definitions.fsproj", "{1A69D204-7E39-4CB0-84B1-1192958ABC61}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Metering.Station.Data.Importer.Definitions", "Metering.Station.Data.Importer.Definitions\Metering.Station.Data.Importer.Definitions.fsproj", "{1A69D204-7E39-4CB0-84B1-1192958ABC61}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Metering.Station.Data.Importer.Core.Tests", "Metering.Station.Data.Importer.Core.Tests\Metering.Station.Data.Importer.Core.Tests.fsproj", "{67068421-1E5D-4C3A-8A97-48D12381F032}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,8 +41,15 @@ Global
 		{1A69D204-7E39-4CB0-84B1-1192958ABC61}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1A69D204-7E39-4CB0-84B1-1192958ABC61}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1A69D204-7E39-4CB0-84B1-1192958ABC61}.Release|Any CPU.Build.0 = Release|Any CPU
+		{67068421-1E5D-4C3A-8A97-48D12381F032}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{67068421-1E5D-4C3A-8A97-48D12381F032}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{67068421-1E5D-4C3A-8A97-48D12381F032}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{67068421-1E5D-4C3A-8A97-48D12381F032}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {421A245C-A5D2-4FC0-83CD-FB28BFB04A01}
 	EndGlobalSection
 EndGlobal

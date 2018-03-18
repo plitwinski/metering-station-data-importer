@@ -20,8 +20,6 @@ let private awaitTaskResult (task : Task<'a>) =
          return task.Result
     }
 
-let airQualityContextFactory = fun(connectionString) -> new AirQualityContext(connectionString)
-
 let private mapReadingToEntity = fun (reading: AirQualityDeviceReading) -> { 
    Id = 0; 
    ClientId = reading.ClientId; 
@@ -35,7 +33,9 @@ let private mapReadingToEntity = fun (reading: AirQualityDeviceReading) -> {
    PM25 = reading.PM25 
 }
 
-let upsertAirQualityReading (contextFactory: unit -> AirQualityContext) (reading: AirQualityDeviceReading) = 
+let private airQualityContextFactory = fun(connectionString) -> new AirQualityContext(connectionString)
+
+let private save (contextFactory: unit -> AirQualityContext) (reading: AirQualityDeviceReading) = 
     async {
         let upsert (context:AirQualityContext) = async {
                 try
@@ -50,4 +50,10 @@ let upsertAirQualityReading (contextFactory: unit -> AirQualityContext) (reading
         }
         use context = contextFactory()
         do! upsert(context)
+    }
+
+let upsertAirQualityReading (connectionString: string) (reading: AirQualityDeviceReading) = 
+    async {
+        let contextFactory = fun () -> airQualityContextFactory(connectionString) 
+        do! save contextFactory reading
     }

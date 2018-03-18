@@ -7,33 +7,31 @@ open Metering.Station.Data.Importer.Core.Messages
 open Metering.Station.Data.Importer.DataAccess.DatabaseModule
 open Metering.Station.Data.Importer.Definitions.Models
 
-
-
-
-let workerActor (settings: SystemSettings) = fun (mailbox: Actor<'a>) -> 
-    let contextFactory = fun() -> airQualityContextFactory(settings.ConnectionString)
-
-    let continueWith = fun (resultAsync : Async<unit>) -> 
+let private continueWith = fun (resultAsync : Async<unit>) -> 
                 async {
                     do! resultAsync
                     return ProcessingFinished
                 }  
 
-    let mutable isWorking = false    
-    let startWorking = fun() -> isWorking <- true
-    let stopWorking = fun() -> isWorking <- false
+let ready (mailbox: Actor<WorkerMsg>) =  fun saveReading -> 
+                                         fun msg ->
+                                                match msg with
+                                                    | DataReady -> mailbox.Context.Parent <! WorkerReady 
+                                                                   false
+                                                    | WorkToProcess item -> printfn "%s %s" (mailbox.Context.Self.Path.Parent.Name + "/" + mailbox.Context.Self.Path.Name) (item.TimeStamp)
+                                                                            saveReading item.Payload |> continueWith |!> mailbox.Self |> ignore
+                                                                            true
+                                                    | PrepareWorkerToStop -> mailbox.Context.Parent <! WorkerReadyToStop 
+                                                                             false
+                                                    | _ -> false
 
-    let ready =  fun msg -> match msg with
-                                    | DataReady -> mailbox.Context.Parent <! WorkerReady
-                                    | WorkToProcess item -> startWorking()
-                                                            printfn "%s %s" (mailbox.Context.Self.Path.Parent.Name + "/" + mailbox.Context.Self.Path.Name) (item.TimeStamp)
-                                                            upsertAirQualityReading contextFactory item.Payload |> continueWith |!> mailbox.Self |> ignore
-                                    | PrepareWorkerToStop -> mailbox.Context.Parent <! WorkerReadyToStop
-                                    | _ -> ()
+let working (mailbox: Actor<WorkerMsg>) = fun msg -> match msg with
+                                                             | ProcessingFinished -> mailbox.Context.Parent <! WorkerFinished
+                                                                                     true
+                                                             | _ -> false
 
-    let working = fun msg -> match msg with
-                                     | ProcessingFinished -> stopWorking()
-                                                             mailbox.Context.Parent <! WorkerFinished
-                                     | _ -> ()
-
-    actorOfState mailbox ready working (fun() -> isWorking)()
+let workerActor (settings: SystemSettings) = fun (mailbox: Actor<'a>) -> 
+    let saveReading = upsertAirQualityReading settings.ConnectionString
+    let becomeReady = (ready mailbox) saveReading
+    let becomeWorking = working mailbox
+    actorOfState mailbox becomeReady becomeWorking ()
